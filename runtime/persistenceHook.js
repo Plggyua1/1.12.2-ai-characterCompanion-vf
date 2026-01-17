@@ -4,9 +4,12 @@ const systemLog = require('../diagnostics/systemLogger')
 const Shutdown = require('./shutdownCoordinator')
 
 function attachPersistence (bot, state, engine) {
-  if (!engine || typeof engine.save !== 'function') return
+  if (!engine || typeof engine.save !== 'function') {
+    systemLog.warn('Persistence engine missing or invalid')
+    return
+  }
 
-  // REGISTER SAVE WITH SHUTDOWN COORDINATOR
+  // 🔒 SAVE ONLY ON SHUTDOWN (NO INTERVALS, NO TIMERS)
   Shutdown.register(async () => {
     try {
       systemLog.info(`Persisting state for ${state.name}`)
@@ -16,10 +19,7 @@ function attachPersistence (bot, state, engine) {
     }
   })
 
-  // OPTIONAL: periodic autosave (no signals)
-  bot.on('spawn', () => {
-    systemLog.info(`Persistence active for ${state.name}`)
-  })
+  systemLog.info(`Persistence hook armed for ${state.name}`)
 }
 
 module.exports = {
