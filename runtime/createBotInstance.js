@@ -6,6 +6,7 @@ const { attachPersistence } = require('./persistenceHook')
 const { attachChatAdmin } = require('./chatAdmin')
 const { ProjectState } = require('../progression/projectState')
 const { AdminController } = require('./adminController')
+const Shutdown = require('./shutdownCoordinator')
 
 function createBotInstance ({ id, name, geminiKey, paths, supervisor }) {
   const bot = mineflayer.createBot({ username: name })
@@ -30,6 +31,16 @@ function createBotInstance ({ id, name, geminiKey, paths, supervisor }) {
 
   const admin = new AdminController(supervisor)
   attachChatAdmin(bot, supervisor, admin)
+
+  // CLEAN SHUTDOWN REGISTRATION (NO process.on HERE)
+  Shutdown.register(async () => {
+    try {
+      systemLog.info(`Shutting down bot ${name} (${id})`)
+      if (bot.quit) await bot.quit()
+    } catch (err) {
+      systemLog.error(`Shutdown error for bot ${name}: ${err}`)
+    }
+  })
 
   bot.on('end', () => {
     systemLog.error(`Bot ${name} (${id}) disconnected`)
