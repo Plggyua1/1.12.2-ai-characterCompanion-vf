@@ -1,39 +1,39 @@
 'use strict'
 
 /*
-BOT RESOLVER — IDENTITY SOURCE OF TRUTH
+============================================================
+BOT RESOLVER — CANONICAL VERSION
+============================================================
+
+Purpose:
+- Convert bots.config.js into concrete bot definitions
+- NO auto-scaling
+- NO implicit duplication
+- NO strategy assumptions
+- Single source of truth: configuration
+
+Each bot definition MUST be explicit.
+============================================================
 */
 
 function resolveBots (config) {
-  const bots = []
-
-  if (config.bots.mode === 'single') {
-    bots.push({
-      id: 'bot-0',
-      name: config.bots.naming.baseName
-    })
-    return bots
+  if (!config || !Array.isArray(config.bots)) {
+    throw new Error('bots.config.js must export a { bots: [] } array')
   }
 
-  if (config.bots.naming.strategy === 'manual') {
-    config.bots.naming.names.forEach((name, i) => {
-      bots.push({
-        id: `bot-${i}`,
-        name
-      })
-    })
-    return bots
-  }
+  return config.bots.map((bot, index) => {
+    if (!bot.id || !bot.name) {
+      throw new Error(
+        `Bot entry at index ${index} is missing required fields (id, name)`
+      )
+    }
 
-  // auto naming
-  for (let i = 0; i < config.bots.count; i++) {
-    bots.push({
-      id: `bot-${i}`,
-      name: `${config.bots.naming.baseName}${i + 1}`
-    })
-  }
-
-  return bots
+    return {
+      id: bot.id,
+      name: bot.name,
+      personality: bot.personality || null
+    }
+  })
 }
 
 module.exports = {
