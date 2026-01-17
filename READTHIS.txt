@@ -1,0 +1,399 @@
+
+
+============================================================
+AI COMPANION — USER GUIDE
+============================================================
+
+This project is a persistent AI companion for Minecraft 1.12.2.
+It is NOT a scripted bot and NOT a chat-only AI.
+
+It behaves like a real player:
+- It thinks continuously
+- It survives first
+- It adapts from experience
+- It learns from uncertainty
+- It remembers events
+- It cooperates with players
+- It stays in character
+
+Behavior emerges from internal systems, not hardcoded scripts.
+
+------------------------------------------------------------
+HOW THE AI THINKS (IMPORTANT)
+------------------------------------------------------------
+
+The AI does NOT follow commands like a normal bot.
+
+Internally, it works like this:
+
+1. PERCEPTION
+   The AI observes the world (danger, hunger, players, terrain, etc).
+
+2. UNCERTAINTY
+   The AI tracks what it is unsure about (unknown threats, missing info).
+
+3. PRESSURE
+   Uncertainty and needs generate internal pressures.
+   (Example: hunger pressure, danger pressure, curiosity pressure)
+
+4. GOALS & ARBITRATION
+   Multiple goals compete.
+   Only one goal may act at a time.
+   The AI may abandon or change goals if conditions change.
+
+5. PLANNING
+   Goals become plans.
+   Plans can fail, pause, or partially complete.
+
+6. MEMORY & LEARNING
+   The AI remembers:
+   - successes
+   - failures
+   - near-misses
+   - player interactions
+
+7. PERSONALITY BIAS
+   Personality influences *how* the AI acts, not *what logic it uses*.
+   (risk tolerance, curiosity, talkativeness, loyalty, etc)
+
+8. COMMUNICATION
+   The AI decides IF it should speak.
+   Silence is valid.
+   Speech is intentional, not spam.
+
+This means:
+- You cannot force behavior reliably
+- The AI may refuse unsafe actions
+- The AI may choose to stay silent
+- The AI may change behavior over time
+
+This is intentional.
+
+------------------------------------------------------------
+GEMINI (LLM) EXPLANATION
+------------------------------------------------------------
+
+Gemini is NOT the brain.
+
+Gemini is used ONLY for:
+- Natural language output
+- Roleplaying / character expression
+- Tone and phrasing
+
+The AI decides WHAT to say.
+Gemini decides HOW it sounds.
+
+This prevents:
+- hallucinated actions
+- AI controlling movement
+- breaking internal consistency
+
+------------------------------------------------------------
+CONFIGURATION OVERVIEW
+------------------------------------------------------------
+
+All configuration lives in the `ai-cmpn/configuration/` folder.
+
+You generally only need to edit a few files.
+
+------------------------------------------------------------
+bots.config.js
+------------------------------------------------------------
+
+This defines:
+- How many bots exist
+- Their names
+- Their personality presets
+
+Example:
+
+{
+  bots: [
+    {
+      id: "bot-0",
+      name: "Companion",
+      personality: "thorfinn"
+    }
+  ]
+}
+
+Notes:
+- One entry = one bot
+- Multiple entries = multiple bots
+- Nothing is auto-created
+- Personalities do NOT override bot count
+
+------------------------------------------------------------
+personality.config.js
+------------------------------------------------------------
+
+This defines character presets used for speech style.
+
+Presets only affect:
+- Tone
+- Verbosity
+- Emotional expression
+
+They do NOT override:
+- Survival logic
+- Safety decisions
+- Planning
+
+You may add your own presets here.
+
+Example idea:
+- anime characters
+- original characters
+- calm companion
+- aggressive fighter
+- quiet observer
+
+------------------------------------------------------------
+server.config.js
+------------------------------------------------------------
+
+This defines where the bot connects.
+
+You can set:
+- Minecraft server IP
+- Port
+- Game version (1.12.2)
+- Status dashboard port
+
+If you change servers, this is where you do it.
+
+------------------------------------------------------------
+admin.config.js
+------------------------------------------------------------
+
+This defines who is allowed to control bots via chat.
+
+Example:
+- Reload bots
+- Disconnect bots
+- Pause / resume bots
+
+Only listed usernames can run admin commands.
+
+------------------------------------------------------------
+HOW TO START THE SYSTEM
+------------------------------------------------------------
+
+There is ONE entry point.
+
+From the project root:
+
+node index.js
+
+This:
+- Starts logging
+- Loads configuration
+- Spawns bots
+- Enables crash recovery
+- Starts the status dashboard
+- Enables admin chat commands
+
+Do NOT run individual scripts.
+
+------------------------------------------------------------
+IN-GAME ADMIN COMMANDS
+------------------------------------------------------------
+
+Commands are typed in chat by authorized users.
+
+Examples:
+
+!reload
+!reload bot-0
+
+!disconnect
+!disconnect bot-1
+
+!pause bot-0
+!resume bot-0
+
+!save bot-0
+!status
+
+These commands are logged to ai.log.
+
+------------------------------------------------------------
+CRASH RECOVERY & SAFETY
+------------------------------------------------------------
+
+If a bot crashes:
+- It automatically restarts
+- Restart rate is limited (6 per hour)
+- Repeated crashes disable the bot temporarily
+
+This prevents:
+- infinite crash loops
+- server lag
+- data corruption
+
+------------------------------------------------------------
+LOGS
+------------------------------------------------------------
+
+All logs are written to:
+
+ai-cmpn/logs/ai.log
+
+There is NO console spam.
+
+Logs include:
+- crashes
+- restarts
+- admin commands
+- performance throttling
+- dashboard access keys
+
+------------------------------------------------------------
+MULTIPLE BOTS (IMPORTANT)
+------------------------------------------------------------
+
+Each bot:
+- Has its own memory
+- Has its own personality
+- Has its own persistence files
+- Does NOT share thoughts with others
+
+There is no hive-mind.
+
+Running many bots will increase CPU/RAM usage.
+The performance governor will throttle if needed.
+
+------------------------------------------------------------
+OPTIONAL: MODDED SERVERS & SKINS
+------------------------------------------------------------
+
+If you run modded Minecraft and want bots to visually match
+their character (anime, OC, etc), you can use skin mods.
+
+A commonly used mod:
+
+CustomSkinLoader
+https://www.curseforge.com/minecraft/mc-mods/customskinloader
+
+This allows:
+- Custom skins without Mojang accounts
+- Local or URL-based skins
+- Character-accurate appearances
+
+This is OPTIONAL.
+The AI works fine without it.
+
+------------------------------------------------------------
+IMPORTANT FINAL NOTES
+------------------------------------------------------------
+
+This AI is NOT:
+- optimal
+- perfectly obedient
+- always talkative
+- script-driven
+
+It IS:
+- adaptive
+- cautious
+- memory-driven
+- internally consistent
+- character-focused
+
+Treat it like a player, not a tool.
+
+Ai status web dashboard:
+Ai status web dashboard as self explanatory is a status board n stuff of the bots that can run through vercel or any deployer and is a website that displays this stuff, comes with key security and doesnt change after its first generated(aka when the bot is first enabled).
+
+Deploy the code below for your online display.
+index.html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AI Companion Dashboard</title>
+  <style>
+    body {
+      font-family: monospace;
+      background:#111;
+      color:#eee;
+      padding:20px;
+    }
+    .bot {
+      border:1px solid #333;
+      padding:10px;
+      margin-bottom:10px;
+    }
+    .online { color:#00ff88 }
+    .offline { color:#ff5555 }
+  </style>
+</head>
+<body>
+
+<h1>AI Companion Live Dashboard</h1>
+<div id="bots">Connecting…</div>
+
+<script>
+/*
+REQUIRED:
+- Your bot server must be publicly reachable
+- Use wss:// (secure WebSocket)
+*/
+
+const params = new URLSearchParams(location.search)
+const key = params.get('key')
+
+// CHANGE THIS to your server IP / domain
+const BACKEND_WS = 'wss://YOUR_SERVER_IP_OR_DOMAIN:8787'
+
+const ws = new WebSocket(`${BACKEND_WS}?key=${key}`)
+
+ws.onmessage = ev => {
+  const bots = JSON.parse(ev.data)
+  const root = document.getElementById('bots')
+  root.innerHTML = ''
+
+  bots.forEach(b => {
+    const div = document.createElement('div')
+    div.className = 'bot'
+    div.innerHTML = `
+      <b>${b.name}</b><br>
+      Status:
+      <span class="${b.online ? 'online':'offline'}">
+        ${b.online ? 'ONLINE':'OFFLINE'}
+      </span><br>
+      Restarts (1h): ${b.restartsLastHour}
+    `
+    root.appendChild(div)
+  })
+}
+
+ws.onerror = () => {
+  document.getElementById('bots').innerText =
+    'Failed to connect to backend'
+}
+</script>
+
+</body>
+</html>
+
+And add this for safety
+vercel.json
+{
+  "routes": [
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
+
+To use the dashboard you'll need the key which works as so below:
+When your bot system starts, it logs:
+STATUS DASHBOARD ACCESS KEY: abc123...
+
+You open your Vercel site like:
+https://your-vercel-site.vercel.app/?key=abc123
+
+
+
+============================================================
+END OF GUIDE
+============================================================
