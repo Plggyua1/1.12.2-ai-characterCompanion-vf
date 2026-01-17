@@ -1,60 +1,53 @@
 'use strict'
 
-const fs = require('fs')
-const config = require('../configuration/bots.config')
-const { resolveBots } = require('../configuration/botResolver')
-const { getBotPaths } = require('../configuration/botPaths')
-const { BotSupervisor } = require('./botSupervisor')
-const { AdminController } = require('./adminController')
-const { watchConfig } = require('../configuration/configWatcher')
-const { startStatusServer } = require('./statusServer')
-const { PerformanceGovernor } = require('./performanceGovernor')
+/*
+============================================================
+SYSTEM BOOTSTRAP
+============================================================
+
+Responsibilities:
+- Initialize logging
+- Load configuration
+- Resolve bots
+- Start status server
+- Launch bots
+- Register ONE shutdown handler
+============================================================
+*/
+
 const systemLog = require('../diagnostics/systemLogger')
+const { resolveBots } = require('../configuration/botResolver')
+const botConfig = require('../configuration/bots.config')
 
-function ensureDirs (paths) {
-  Object.values(paths).forEach(p => {
-    if (p.endsWith('.json')) return
-    if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true })
-  })
-}
+const Shutdown = require('./shutdownCoordinator')
+const { startStatusServer } = require('./statusServer')
+const { createBotInstance } = require('./createBotInstance')
 
-function bootstrap () {
-  const supervisor = new BotSupervisor()
-  const admin = new AdminController(supervisor)
-  const governor = new PerformanceGovernor()
+async function bootstrap () {
+  systemLog.info('============================================')
+  systemLog.info('AI COMPANION SYSTEM STARTING')
+  systemLog.info('============================================')
 
-  const bots = resolveBots(config)
+  // Initialize global shutdown coordinator ONCE
+  Shutdown.init()
 
-  bots.forEach(botMeta => {
-    const paths = getBotPaths(botMeta.id)
-    ensureDirs(paths)
+  // Resolve bot definitions
+  const bots = resolveBots(botConfig)
+  systemLog.info(`Resolved ${bots.length} bot(s)`)
 
-    governor.registerBot(botMeta.id)
+  // Start live status server
+  startStatusServer()
 
-    supervisor.launch({
-      ...botMeta,
-      geminiKey: config.gemini.apiKey,
-      paths,
-      supervisor
+  // Create bots
+  for (const botDef of bots) {
+    createBotInstance({
+      ...botDef,
+      geminiKey: botConfig.gemini.apiKey,
+      supervisor: null
     })
-  })
+  }
 
-  // Performance governor tick
-  setInterval(() => {
-    governor.update()
-  }, 5000)
-
-  // Hot config reload (safe)
-  watchConfig(() => {
-    systemLog.warn('Config hot-reloaded (applies to new bots only)')
-  })
-
-  // Web status server
-  startStatusServer(supervisor)
-
-  global.AI_ADMIN = admin
+  systemLog.info('System bootstrap complete')
 }
 
-module.exports = {
-  bootstrap
-}
+module.exports = bootstrap
