@@ -1,17 +1,5 @@
 'use strict'
 
-/*
-============================================================
-SHUTDOWN COORDINATOR
-============================================================
-
-Purpose:
-- Ensure SIGINT / SIGTERM are handled ONCE
-- Allow multiple systems/bots to register cleanup logic
-- Prevent EventEmitter listener explosion
-============================================================
-*/
-
 const callbacks = new Set()
 let initialized = false
 
@@ -27,12 +15,12 @@ function init () {
   initialized = true
 
   const handler = async (signal) => {
-    console.log(`[SHUTDOWN] Received ${signal}, shutting down safely...`)
+    console.log(`[SHUTDOWN] ${signal} received`)
     for (const fn of callbacks) {
       try {
         await fn()
       } catch (err) {
-        console.error('[SHUTDOWN] Error during shutdown:', err)
+        console.error('[SHUTDOWN] callback error:', err)
       }
     }
     process.exit(0)
