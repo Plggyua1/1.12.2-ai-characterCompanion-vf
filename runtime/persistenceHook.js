@@ -1,27 +1,25 @@
 'use strict'
 
-/*
-PHASE 43.9 — PERSISTENCE HOOK
-(UPDATED — PER-BOT SAFE)
-*/
+const systemLog = require('../diagnostics/systemLogger')
+const Shutdown = require('./shutdownCoordinator')
 
-const { PersistenceEngine } = require('../persistence/persistenceEngine')
+function attachPersistence (bot, state, engine) {
+  if (!engine || typeof engine.save !== 'function') return
 
-function attachPersistence (bot, state, savePath) {
-  const engine = new PersistenceEngine(savePath)
+  // REGISTER SAVE WITH SHUTDOWN COORDINATOR
+  Shutdown.register(async () => {
+    try {
+      systemLog.info(`Persisting state for ${state.name}`)
+      await engine.save(state)
+    } catch (err) {
+      systemLog.error(`Persistence save failed for ${state.name}: ${err}`)
+    }
+  })
 
-  // Load on startup
-  const loaded = engine.load(state)
-  Object.assign(state, loaded)
-
-  // Periodic save
-  setInterval(() => {
-    engine.save(state)
-  }, 1000 * 60)
-
-  // Save on exit
-  process.on('SIGINT', () => engine.save(state))
-  process.on('SIGTERM', () => engine.save(state))
+  // OPTIONAL: periodic autosave (no signals)
+  bot.on('spawn', () => {
+    systemLog.info(`Persistence active for ${state.name}`)
+  })
 }
 
 module.exports = {
